@@ -9,8 +9,9 @@ import vn.linh.vqherokuapp.HerokuApp
 import javax.inject.Singleton
 
 @Singleton
-@Component(modules = [AndroidSupportInjectionModule::class, AppModule::class])
-interface AppComponent : AndroidInjector<HerokuApp>{
+@Component(
+    modules = [AndroidSupportInjectionModule::class, AppModule::class, ActivityBuilderModule::class])
+interface AppComponent : AndroidInjector<HerokuApp> {
 
     @Component.Builder
     interface Builder {

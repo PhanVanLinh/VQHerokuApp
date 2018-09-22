@@ -5,7 +5,7 @@ import android.content.Context
 import dagger.Binds
 import dagger.Module
 
-@Module
+@Module(includes = [NetworkModule::class, RepositoryModule::class])
 abstract class AppModule {
 
     @Binds

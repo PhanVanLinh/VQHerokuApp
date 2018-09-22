@@ -22,6 +22,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    applicationVariants.all { variant ->
+        def BASE_URL = "http://sd2-hiring.herokuapp.com/"
+
+        variant.buildConfigField "String", "BASE_URL", "\"${BASE_URL}\""
+    }
 }
 
 dependencies {
