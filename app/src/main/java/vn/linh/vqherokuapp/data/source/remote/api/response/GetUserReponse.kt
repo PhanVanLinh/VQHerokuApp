@@ -12,5 +12,5 @@ class GetUserResponse(
 
     @SerializedName("users")
     @Expose
-    val users:Array<User>
+    val users:List<User>
 )

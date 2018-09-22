@@ -7,11 +7,11 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 27
     defaultConfig {
         applicationId "vn.linh.vqherokuapp"
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -40,6 +40,12 @@ dependencies {
     implementation "android.arch.lifecycle:extensions:$archComponents_version"
     implementation "com.android.support:design:$appCompat_version"
     implementation "com.android.support:support-v4:$appCompat_version"
+
+    //Paging
+    implementation("android.arch.paging:runtime:$archPaging_version") {
+        exclude group: 'com.android.support', module: 'recyclerview'
+    }
+    implementation "android.arch.paging:rxjava2:$archPaging_version"
 
     // Dagger
     implementation "com.google.dagger:dagger:$dagger_version"
