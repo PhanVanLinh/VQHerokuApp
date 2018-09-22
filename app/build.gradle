@@ -4,6 +4,8 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
+apply plugin: 'kotlin-kapt'
+
 android {
     compileSdkVersion 28
     defaultConfig {
@@ -30,13 +32,13 @@ dependencies {
     implementation "com.android.support:appcompat-v7:$appCompat_version"
     implementation "com.android.support.constraint:constraint-layout:$constraintLayout_version"
     implementation "android.arch.lifecycle:extensions:$archComponents_version"
-    implementation "com.google.dagger:dagger:$dagger_version"
-    implementation "com.google.dagger:dagger-android:$dagger_version"
-    implementation "com.google.dagger:dagger-android-support:$dagger_version"
     implementation "com.android.support:design:$appCompat_version"
     implementation "com.android.support:support-v4:$appCompat_version"
 
     // Dagger
+    implementation "com.google.dagger:dagger:$dagger_version"
+    implementation "com.google.dagger:dagger-android:$dagger_version"
+    implementation "com.google.dagger:dagger-android-support:$dagger_version"
     kapt "com.google.dagger:dagger-compiler:$dagger_version"
     kapt "com.google.dagger:dagger-android-processor:$dagger_version"
 
