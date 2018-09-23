@@ -8,8 +8,10 @@ import vn.linh.vqherokuapp.feature.base.recyclerview.RecyclerViewItem
 import vn.linh.vqherokuapp.feature.model.LoadingState
 import vn.linh.vqherokuapp.feature.model.NetworkState
 import vn.linh.vqherokuapp.feature.model.SuccessState
+import vn.linh.vqherokuapp.feature.user.adapter.model.DividerItem
 import vn.linh.vqherokuapp.feature.user.adapter.model.ItemItem
 import vn.linh.vqherokuapp.feature.user.adapter.model.UserItem
+import vn.linh.vqherokuapp.feature.user.adapter.viewholder.DividerViewHolder
 import vn.linh.vqherokuapp.feature.user.adapter.viewholder.ItemViewHolder
 import vn.linh.vqherokuapp.feature.user.adapter.viewholder.NetworkStateViewHolder
 import vn.linh.vqherokuapp.feature.user.adapter.viewholder.UserViewHolder
@@ -30,6 +32,9 @@ class UserAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                     false))
             ViewType.ITEM.value -> ItemViewHolder(
                 LayoutInflater.from(parent.context).inflate(R.layout.item_user_item, parent,
+                    false))
+            ViewType.DIVIDER.value -> DividerViewHolder(
+                LayoutInflater.from(parent.context).inflate(R.layout.item_divider, parent,
                     false))
             ViewType.STATE.value -> NetworkStateViewHolder(
                 LayoutInflater.from(parent.context).inflate(R.layout.item_network_state, parent,
@@ -60,6 +65,9 @@ class UserAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
         if (getItem(position) is UserItem) {
             return ViewType.USER.value
+        }
+        if (getItem(position) is DividerItem) {
+            return ViewType.DIVIDER.value
         }
         return ViewType.ITEM.value
     }
@@ -96,6 +104,7 @@ class UserAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     enum class ViewType(val value: Int) {
         USER(0),
         ITEM(1),
-        STATE(2)
+        DIVIDER(2),
+        STATE(3)
     }
 }
