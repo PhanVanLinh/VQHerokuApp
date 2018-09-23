@@ -1,26 +1,34 @@
 package vn.linh.vqherokuapp.feature.user.adapter
 
-import android.arch.paging.PagedListAdapter
+import android.support.v7.recyclerview.extensions.ListAdapter
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import vn.linh.vqherokuapp.R
-import vn.linh.vqherokuapp.data.model.User
+import vn.linh.vqherokuapp.feature.base.recyclerview.RecyclerViewItem
 import vn.linh.vqherokuapp.feature.model.LoadingState
 import vn.linh.vqherokuapp.feature.model.NetworkState
 import vn.linh.vqherokuapp.feature.model.SuccessState
+import vn.linh.vqherokuapp.feature.user.adapter.model.ItemItem
+import vn.linh.vqherokuapp.feature.user.adapter.model.UserItem
+import vn.linh.vqherokuapp.feature.user.adapter.viewholder.ItemViewHolder
+import vn.linh.vqherokuapp.feature.user.adapter.viewholder.NetworkStateViewHolder
+import vn.linh.vqherokuapp.feature.user.adapter.viewholder.UserViewHolder
 
-class UserAdapter : PagedListAdapter<User, RecyclerView.ViewHolder>(
+class UserAdapter : ListAdapter<RecyclerViewItem, RecyclerView.ViewHolder>(
     DiffCallback) {
     private var networkState: NetworkState? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
-            R.layout.item_user -> UserViewHolder(
+            ViewType.USER.value -> UserViewHolder(
                 LayoutInflater.from(parent.context).inflate(R.layout.item_user, parent,
                     false))
-            R.layout.item_network_state -> NetworkStateViewHolder(
+            ViewType.ITEM.value -> ItemViewHolder(
+                LayoutInflater.from(parent.context).inflate(R.layout.item_user_item, parent,
+                    false))
+            ViewType.STATE.value -> NetworkStateViewHolder(
                 LayoutInflater.from(parent.context).inflate(R.layout.item_network_state, parent,
                     false))
             else -> throw IllegalArgumentException("unknown view type")
@@ -28,14 +36,14 @@ class UserAdapter : PagedListAdapter<User, RecyclerView.ViewHolder>(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (holder is UserViewHolder) {
-            getItem(position)?.let {
-                holder.bindTo(it)
+        when (holder) {
+            is UserViewHolder -> getItem(position)?.let {
+                holder.bind(it as UserItem)
             }
-        } else if (holder is NetworkStateViewHolder) {
-            networkState?.let {
-                holder.bindTo(it)
+            is NetworkStateViewHolder -> networkState?.let {
+                holder.bind(it)
             }
+            is ItemViewHolder -> holder.bind(getItem(position) as ItemItem)
         }
     }
 
@@ -44,11 +52,13 @@ class UserAdapter : PagedListAdapter<User, RecyclerView.ViewHolder>(
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (position == itemCount - 1 && hasNetworkStateRow()) {
-            R.layout.item_network_state
-        } else {
-            R.layout.item_user
+        if (position == itemCount - 1 && hasNetworkStateRow()) {
+            return ViewType.STATE.value
         }
+        if (getItem(position) is UserItem) {
+            return ViewType.USER.value
+        }
+        return ViewType.ITEM.value
     }
 
     override fun getItemCount(): Int {
@@ -56,37 +66,41 @@ class UserAdapter : PagedListAdapter<User, RecyclerView.ViewHolder>(
     }
 
     fun setNetworkState(newNetworkState: NetworkState?) {
-        currentList?.let {
-            if (newNetworkState is SuccessState) {
-                if (hasNetworkStateRow()) {
-                    this.networkState = null
-                    notifyItemRemoved(super.getItemCount() - 1)
-                }
-                return
+        if (newNetworkState is SuccessState) {
+            if (hasNetworkStateRow()) {
+                this.networkState = null
+                notifyItemRemoved(super.getItemCount() - 1)
             }
+        }
 
-            val networkStateRowExisted = hasNetworkStateRow()
-            if (newNetworkState is LoadingState) {
-                this.networkState = newNetworkState
-                if (networkStateRowExisted) {
-                    notifyItemChanged(itemCount - 1)
-                } else {
-                    notifyItemInserted(super.getItemCount())
-                }
+        val networkStateRowExisted = hasNetworkStateRow()
+        if (newNetworkState is LoadingState) {
+            this.networkState = newNetworkState
+            if (networkStateRowExisted) {
+                notifyItemChanged(itemCount - 1)
+            } else {
+                notifyItemInserted(super.getItemCount())
             }
         }
     }
 
     companion object {
-        val DiffCallback = object : DiffUtil.ItemCallback<User>() {
-            override fun areItemsTheSame(oldItem: User, newItem: User): Boolean {
-                return oldItem.name == newItem.name
+        val DiffCallback = object : DiffUtil.ItemCallback<RecyclerViewItem>() {
+            override fun areItemsTheSame(oldItem: RecyclerViewItem,
+                newItem: RecyclerViewItem): Boolean {
+                return true
             }
 
-            override fun areContentsTheSame(oldItem: User, newItem: User): Boolean {
+            override fun areContentsTheSame(oldItem: RecyclerViewItem,
+                newItem: RecyclerViewItem): Boolean {
                 return oldItem == newItem
             }
         }
     }
 
+    enum class ViewType(val value: Int) {
+        USER(0),
+        ITEM(1),
+        STATE(2)
+    }
 }

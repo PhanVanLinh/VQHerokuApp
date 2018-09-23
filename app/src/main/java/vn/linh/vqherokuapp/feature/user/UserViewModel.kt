@@ -1,40 +1,66 @@
 package vn.linh.vqherokuapp.feature.user
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.Transformations
+import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
-import android.arch.paging.LivePagedListBuilder
-import android.arch.paging.PagedList
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import vn.linh.vqherokuapp.data.model.User
+import vn.linh.vqherokuapp.data.source.UserRepository
+import vn.linh.vqherokuapp.feature.model.ErrorState
+import vn.linh.vqherokuapp.feature.model.LoadingState
 import vn.linh.vqherokuapp.feature.model.NetworkState
-import vn.linh.vqherokuapp.interactor.GetUserDataSource
+import vn.linh.vqherokuapp.feature.model.SuccessState
 
-class UserViewModel(private val getUserSourceFactory: GetUserDataSource.Factory) : ViewModel() {
-
-    var users: LiveData<PagedList<User>>
+class UserViewModel(private val userRepository: UserRepository,
+    val compositeDisposable: CompositeDisposable) : ViewModel() {
+    val initialLoad = MutableLiveData<NetworkState>()
+    val networkState = MutableLiveData<NetworkState>()
+    var users: MutableLiveData<MutableList<User>> = MutableLiveData()
 
     init {
-        val config = PagedList.Config.Builder()
-            .setPageSize(PAGE_SIZE)
-            .setInitialLoadSizeHint(PAGE_SIZE * 2)
-            .setEnablePlaceholders(false)
-            .build()
-        users = LivePagedListBuilder<Int, User>(getUserSourceFactory, config).build()
+
     }
 
-    fun getInitialState(): LiveData<NetworkState> = Transformations.switchMap<GetUserDataSource, NetworkState>(
-        getUserSourceFactory.usersDataSourceLiveData) { it.initialLoad }
+    fun loadInitial() {
+        load(STARTING_OFFSET, PAGE_SIZE * 2) {
+            val newList = users.value ?: arrayListOf()
+            newList.addAll(it)
+            users.value = newList
+        }
+    }
 
-    fun getNetworkState(): LiveData<NetworkState> = Transformations.switchMap<GetUserDataSource, NetworkState>(
-        getUserSourceFactory.usersDataSourceLiveData) { it.networkState }
+    fun loadMore() {
+        load(users.value!!.size, PAGE_SIZE) {
+            val newList = users.value ?: arrayListOf()
+            newList.addAll(it)
+            users.value = newList
+        }
+    }
 
+    private fun load(offSet: Int, limit: Int, onResult: (users: List<User>) -> Unit): Disposable {
+        return userRepository.getUsers(offSet, limit)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnSubscribe {
+                networkState.postValue(LoadingState())
+            }
+            .subscribe({
+                onResult.invoke(it)
+                networkState.postValue(SuccessState())
+            }, {
+                networkState.postValue(ErrorState(it.message))
+            })
+    }
 
     override fun onCleared() {
         super.onCleared()
-        getUserSourceFactory.usersDataSourceLiveData.value?.dispose()
+        compositeDisposable.dispose()
     }
 
     companion object {
-        const val PAGE_SIZE = 10
+        const val STARTING_OFFSET = 0
+        const val PAGE_SIZE = 5
     }
 }

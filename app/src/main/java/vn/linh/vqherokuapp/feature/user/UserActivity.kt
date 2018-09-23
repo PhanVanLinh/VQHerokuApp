@@ -1,7 +1,6 @@
 package vn.linh.vqherokuapp.feature.user
 
 import android.arch.lifecycle.Observer
-import android.arch.paging.PagedList
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
@@ -9,9 +8,12 @@ import dagger.android.support.DaggerAppCompatActivity
 import kotlinx.android.synthetic.main.activity_home.*
 import vn.linh.vqherokuapp.R
 import vn.linh.vqherokuapp.data.model.User
+import vn.linh.vqherokuapp.feature.base.recyclerview.RecyclerViewItem
 import vn.linh.vqherokuapp.feature.model.NetworkState
 import vn.linh.vqherokuapp.feature.model.Status
 import vn.linh.vqherokuapp.feature.user.adapter.UserAdapter
+import vn.linh.vqherokuapp.feature.user.adapter.model.ItemItem
+import vn.linh.vqherokuapp.feature.user.adapter.model.UserItem
 import javax.inject.Inject
 
 class UserActivity : DaggerAppCompatActivity() {
@@ -27,6 +29,7 @@ class UserActivity : DaggerAppCompatActivity() {
 
         initialRecyclerUsers()
         observer()
+        viewModel.loadInitial()
     }
 
     private fun initialRecyclerUsers() {
@@ -36,13 +39,22 @@ class UserActivity : DaggerAppCompatActivity() {
     }
 
     private fun observer() {
-        viewModel.users.observe(this, Observer<PagedList<User>> { userAdapter.submitList(it) })
-        viewModel.getInitialState().observe(this, Observer {
-            updateNetworkState(it)
+        viewModel.users.observe(this, Observer { users ->
+            users?.let {
+                userAdapter.submitList(mapToRecyclerView(it))
+            }
         })
-        viewModel.getNetworkState().observe(this, Observer {
-            userAdapter.setNetworkState(it)
-        })
+    }
+
+    private fun mapToRecyclerView(users: List<User>): List<RecyclerViewItem> {
+        val list = arrayListOf<RecyclerViewItem>()
+        for (user in users) {
+            list.add(UserItem(user.name, user.image))
+            for (image in user.items) {
+                list.add(ItemItem(image))
+            }
+        }
+        return list
     }
 
     private fun updateNetworkState(networkState: NetworkState?) {
