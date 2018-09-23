@@ -15,6 +15,9 @@ open class GridSpacingDecoration(private val top: Int, private val right: Int,
         val layoutManager = parent.layoutManager as GridLayoutManager
         val spanCount = getSpanCount(layoutManager)
         val position = parent.getChildAdapterPosition(view) // item position
+        if (position == -1) {
+            return
+        }
         val column = layoutManager.spanSizeLookup.getSpanIndex(position, spanCount)
         val spanSize = layoutManager.spanSizeLookup.getSpanSize(position)
         val row = layoutManager.spanSizeLookup.getSpanGroupIndex(position, spanCount)

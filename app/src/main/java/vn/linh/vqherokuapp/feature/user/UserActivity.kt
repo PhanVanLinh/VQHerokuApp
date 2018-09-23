@@ -31,9 +31,16 @@ class UserActivity : DaggerAppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
+        initialToolbar()
         initialRecyclerUsers()
         observer()
         viewModel.loadInitial()
+    }
+
+    private fun initialToolbar() {
+        toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     private fun initialRecyclerUsers() {
