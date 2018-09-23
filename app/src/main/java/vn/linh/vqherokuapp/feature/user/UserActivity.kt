@@ -61,7 +61,7 @@ class UserActivity : DaggerAppCompatActivity() {
             GridUserDecoration(spacing, spacing, 0, spacing, spacing))
         recycler_users.addOnScrollListener(object : EndlessRecyclerViewScrollListener(
             layoutManager) {
-            override fun onLoadMore(page: Int) {
+            override fun onLoadMore(page: Int, totalItemsCount: Int) {
                 viewModel.loadMore()
             }
         })
@@ -70,6 +70,10 @@ class UserActivity : DaggerAppCompatActivity() {
     private fun observer() {
         viewModel.newUsers.observe(this, Observer { users ->
             users?.let {
+                if (it.isEmpty()) {
+                    userAdapter.setNetworkState(null)
+                    return@let
+                }
                 userAdapter.add(mapToRecyclerViewItem(it))
             }
         })

@@ -7,7 +7,6 @@ import vn.linh.vqherokuapp.R
 import vn.linh.vqherokuapp.feature.base.recyclerview.RecyclerViewItem
 import vn.linh.vqherokuapp.feature.model.LoadingState
 import vn.linh.vqherokuapp.feature.model.NetworkState
-import vn.linh.vqherokuapp.feature.model.SuccessState
 import vn.linh.vqherokuapp.feature.user.adapter.model.DividerItem
 import vn.linh.vqherokuapp.feature.user.adapter.model.ItemItem
 import vn.linh.vqherokuapp.feature.user.adapter.model.UserItem
@@ -56,7 +55,7 @@ class UserAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     private fun hasNetworkStateRow(): Boolean {
-        return networkState != null
+        return dataSet.size > 0 && networkState != null
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -81,23 +80,13 @@ class UserAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     fun setNetworkState(newNetworkState: NetworkState?) {
-        if (itemCount == 0) {
+        if (newNetworkState == null) {
+            this.networkState = null
+            notifyItemRemoved(itemCount)
             return
         }
-        if (newNetworkState is SuccessState) {
-            if (hasNetworkStateRow()) {
-                this.networkState = null
-                notifyItemRemoved(itemCount)
-            }
-        }
-        val networkStateRowExisted = hasNetworkStateRow()
         if (newNetworkState is LoadingState) {
             this.networkState = newNetworkState
-            if (networkStateRowExisted) {
-                notifyItemChanged(itemCount - 1)
-            } else {
-                notifyItemInserted(itemCount)
-            }
         }
     }
 
