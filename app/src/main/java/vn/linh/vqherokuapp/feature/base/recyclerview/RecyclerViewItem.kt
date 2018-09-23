@@ -1,5 +1,5 @@
 package vn.linh.vqherokuapp.feature.base.recyclerview
 
-interface RecyclerViewItem {
+open class RecyclerViewItem constructor(open val spanSize: Int) {
 
 }

@@ -14,42 +14,50 @@ import vn.linh.vqherokuapp.feature.model.NetworkState
 import vn.linh.vqherokuapp.feature.model.SuccessState
 
 class UserViewModel(private val userRepository: UserRepository,
-    val compositeDisposable: CompositeDisposable) : ViewModel() {
+    private val compositeDisposable: CompositeDisposable) : ViewModel() {
     val initialLoad = MutableLiveData<NetworkState>()
     val networkState = MutableLiveData<NetworkState>()
-    var users: MutableLiveData<MutableList<User>> = MutableLiveData()
+    var newUsers: MutableLiveData<List<User>> = MutableLiveData()
+    var offset: Int = STARTING_OFFSET
 
     init {
 
     }
 
     fun loadInitial() {
-        load(STARTING_OFFSET, PAGE_SIZE * 2) {
-            val newList = users.value ?: arrayListOf()
-            newList.addAll(it)
-            users.value = newList
+        load(offset, PAGE_SIZE * 2) {
+            newUsers.value = it
         }
     }
 
     fun loadMore() {
-        load(users.value!!.size, PAGE_SIZE) {
-            val newList = users.value ?: arrayListOf()
-            newList.addAll(it)
-            users.value = newList
+        load(offset, PAGE_SIZE) {
+            newUsers.value = it
         }
     }
 
     private fun load(offSet: Int, limit: Int, onResult: (users: List<User>) -> Unit): Disposable {
+        val isInitialLoad = offSet == STARTING_OFFSET
         return userRepository.getUsers(offSet, limit)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSubscribe {
+                if (isInitialLoad) {
+                    initialLoad.postValue(LoadingState())
+                }
                 networkState.postValue(LoadingState())
             }
             .subscribe({
                 onResult.invoke(it)
+                if (isInitialLoad) {
+                    initialLoad.postValue(SuccessState())
+                }
                 networkState.postValue(SuccessState())
+                offset += it.size
             }, {
+                if (isInitialLoad) {
+                    initialLoad.postValue(ErrorState(it.message))
+                }
                 networkState.postValue(ErrorState(it.message))
             })
     }
